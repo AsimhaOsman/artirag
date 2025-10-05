@@ -21,7 +21,13 @@ import { useTranslate } from '@/hooks/common-hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { postLogin } from '@/api-service';   // ✅ use Ragflow API service
+import { message } from 'antd';
+import { useNavigate } from '@umijs/max';
 
+// -------------------------------
+// SIGN UP FORM (unchanged)
+// -------------------------------
 export function SignUpForm() {
   const { t } = useTranslate('login');
 
@@ -90,7 +96,7 @@ export function SignUpForm() {
               <FormLabel>{t('passwordLabel')}</FormLabel>
               <FormControl>
                 <Input
-                  type={'password'}
+                  type="password"
                   placeholder={t('passwordPlaceholder')}
                   {...field}
                 />
@@ -127,8 +133,12 @@ export function SignUpForm() {
   );
 }
 
+// -------------------------------
+// SIGN IN FORM (✅ Backend Enabled)
+// -------------------------------
 export function SignInForm() {
   const { t } = useTranslate('login');
+  const navigate = useNavigate();
 
   const FormSchema = z.object({
     email: z.string().email({
@@ -141,19 +151,29 @@ export function SignInForm() {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       email: '',
+      password: '',
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log('🚀 ~ onSubmit ~ data:', data);
-    toast({
-      title: 'You submitted the following values:',
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
+  // ✅ Integrated backend logic
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    try {
+      const res = await postLogin({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (res?.code === 200 && res?.data?.token) {
+        localStorage.setItem('token', res.data.token);
+        message.success('Login successful!');
+        navigate('/');
+      } else {
+        message.error(res?.message || 'Invalid email or password');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      message.error('Network error. Please try again.');
+    }
   }
 
   return (
@@ -180,7 +200,7 @@ export function SignInForm() {
               <FormLabel>{t('passwordLabel')}</FormLabel>
               <FormControl>
                 <Input
-                  type={'password'}
+                  type="password"
                   placeholder={t('passwordPlaceholder')}
                   {...field}
                 />
@@ -206,6 +226,9 @@ export function SignInForm() {
   );
 }
 
+// -------------------------------
+// VERIFY EMAIL (unchanged)
+// -------------------------------
 export function VerifyEmailForm() {
   const FormSchema = z.object({
     pin: z.string().min(6, {
