@@ -29,6 +29,16 @@ redis:
   db: 1
   password: 'infini_rag_flow'
   host: 'localhost:6379'
+mcpServers:
+  statpearls-mcp:
+    command: npx
+    args:
+      - "-y"
+      - "@smithery/cli@latest"
+      - "run"
+      - "@jpoles1/statpearls-mcp"
+      - "--key"
+      - "862d1e31-586d-4b2c-b626-a34cd574b3ba"
 # postgres:
 #   name: 'rag_flow'
 #   user: 'rag_flow'
